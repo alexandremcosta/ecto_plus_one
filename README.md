@@ -2,9 +2,7 @@
 
 Logs N+1 queries via telemetry events.
 
-Use on `:dev` or `:test` environment to warn performance issues. On test environment,
-you should run tests synchronously, since it uses a global counter for all tests.
-
+Use on `:dev` or `:test` environment to warn performance issues.
 
 ## Installation
 
@@ -40,5 +38,12 @@ defmodule MyApp.Application do
     # ...
   end
 end
-"""
+```
+
+On test environment, you should run tests synchronously, since it uses a global counter to track
+N+1 queries:
+
+```
+$ mix test --trace
+```
 
