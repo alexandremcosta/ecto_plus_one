@@ -21,7 +21,7 @@ defmodule EctoPlusOne.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:telemetry, "~> 1.1"}
+      {:telemetry, "~> 0.4"}
     ]
   end
 end
