@@ -2,8 +2,7 @@ defmodule EctoPlusOne do
   @moduledoc """
   Logs N+1 queries via telemetry events.
 
-  Use on `:dev` or `:test` environment to warn performance issues. On test environment,
-  you should run tests synchronously, since it uses a global counter for all tests.
+  Use on `:dev` or `:test` environment to warn performance issues.
 
   # Usage
 

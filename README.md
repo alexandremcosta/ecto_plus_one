@@ -40,10 +40,26 @@ defmodule MyApp.Application do
 end
 ```
 
-On test environment, you should run tests synchronously, since it uses a global counter to track
-N+1 queries:
+To run test you need to have postgresql installed locally. Default configuration is -
+```elixir
+config :ecto_plus_one, EctoPlusOne.Repo,
+  database: "ecto_plus_one_test",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox
+```
+
+Only first time create database and run migration with commands - 
 
 ```
-$ mix test --trace
+$ MIX_ENV=test mix ecto.create
+$ MIX_ENV=test mix ecto.migrate
+```
+
+After that run tests using - 
+
+```
+$ mix test
 ```
 
