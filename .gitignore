@@ -24,3 +24,5 @@ ecto_plus_one-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+.idea/
