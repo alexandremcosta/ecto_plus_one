@@ -48,16 +48,12 @@ defmodule EctoPlusOne do
   """
   @spec start([atom()], Keyword.t()) :: :ok | {:error, :already_exists}
   def start(telemetry_event, opts \\ []) do
-    default_opts = [ignored_sources: [], threshold: 3, log_level: :warning]
-    opts = Keyword.merge(default_opts, opts)
-
     opts =
-      opts
-      |> Keyword.put(:counter, :counters.new(1, []))
+      [ignored_sources: [], threshold: 3, log_level: :warning]
+      |> Keyword.merge(opts)
       |> Keyword.update!(:ignored_sources, &MapSet.new(&1))
 
     :ets.new(__MODULE__, [:named_table, :public])
-    :ets.insert(__MODULE__, {"counter", opts[:counter]})
     :telemetry.attach("ecto-plus-one", telemetry_event, &__MODULE__.handle/4, opts)
   end
 
@@ -78,33 +74,46 @@ defmodule EctoPlusOne do
 
     if source not in opts[:ignored_sources] and String.starts_with?(query, "SELECT") do
       increment_or_reset(query, opts)
-      :ets.insert(__MODULE__, {"last_pid", self()})
-      :ets.insert(__MODULE__, {"last_query", query})
-      :ets.insert(__MODULE__, {"last_stacktrace", get_stacktrace()})
+      [{_, query, count, pid, stacktrace}] = get_last_query(self())
+
+      :ets.insert(__MODULE__, {"last_query", query, count, pid, stacktrace})
     end
   end
 
   defp increment_or_reset(current_query, opts) do
     current_pid = self()
 
-    case {:ets.lookup(__MODULE__, "last_query"), :ets.lookup(__MODULE__, "last_pid")} do
-      {[{"last_query", ^current_query}], [{"last_pid", ^current_pid}]} ->
-        :counters.add(opts[:counter], 1, 1)
+    case get_last_query(current_pid) do
+      [{_, ^current_query, _, _, _}] ->
+        increment_count(current_pid)
 
-      {[{"last_query", last_query}], _} ->
-        maybe_warn(last_query, opts)
-        :counters.put(opts[:counter], 1, 0)
+      [] ->
+        set_last_query(current_query, current_pid)
 
-      {_, _} ->
+        case :ets.lookup(__MODULE__, "last_query") do
+          [{"last_query", last_query, _, last_pid, _}] ->
+            maybe_warn(last_query, last_pid, opts)
+            reset_count(last_pid)
+
+          _ ->
+            :do_nothing
+        end
+
+      [{_, last_query, _, _, _}] ->
+        maybe_warn(last_query, current_pid, opts)
+        set_last_query(current_query, current_pid)
+        reset_count(current_pid)
+
+      _ ->
         :do_nothing
     end
   end
 
-  defp maybe_warn(query, opts) do
-    count = :counters.get(opts[:counter], 1)
+  defp maybe_warn(query, pid, opts) do
+    count = get_count(pid)
 
     if count > opts[:threshold] do
-      stacktrace = :ets.lookup(__MODULE__, "last_stacktrace")
+      [{_, _, _, _, stacktrace}] = :ets.lookup(__MODULE__, get_key(pid))
 
       Logger.log(opts[:log_level], """
       N+1 Query Detected!
@@ -127,4 +136,18 @@ defmodule EctoPlusOne do
       Enum.any?(@ignored_stacktraces, &String.starts_with?(module_str, &1))
     end)
   end
+
+  defp get_key(pid) do
+    "last_query" <> inspect(pid)
+  end
+
+  defp get_last_query(pid),
+    do: :ets.match_object(__MODULE__, {get_key(pid), :"$2", :"$3", pid, :"$4"})
+
+  defp set_last_query(query, pid),
+    do: :ets.insert(__MODULE__, {get_key(pid), query, 1, pid, get_stacktrace()})
+
+  defp increment_count(pid), do: :ets.update_counter(__MODULE__, get_key(pid), {3, 1})
+  defp reset_count(pid), do: :ets.update_counter(__MODULE__, get_key(pid), {3, 1, 1, 0})
+  defp get_count(pid), do: :ets.update_counter(__MODULE__, get_key(pid), {3, 0})
 end
