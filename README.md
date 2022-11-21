@@ -40,6 +40,8 @@ defmodule MyApp.Application do
 end
 ```
 
+# Running Tests
+
 To run test you need to have postgresql installed locally. Default configuration is -
 ```elixir
 config :ecto_plus_one, EctoPlusOne.Repo,
