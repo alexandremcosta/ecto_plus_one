@@ -5,13 +5,13 @@ defmodule EctoPlusOneTest do
   import Ecto.Query
   import ExUnit.CaptureLog
 
+  alias EctoPlusOne.Repo
   alias EctoPlusOne.User
   alias EctoPlusOne.Post
 
-  @repo Application.get_env(:ecto_plus_one, :repo)
 
   setup do
-    Ecto.Adapters.SQL.Sandbox.checkout(EctoPlusOne.Repo)
+    Ecto.Adapters.SQL.Sandbox.checkout(Repo)
 
     {:ok, user1} = create_user(%{name: "test1"})
     {:ok, user2} = create_user(%{name: "test2"})
@@ -26,27 +26,27 @@ defmodule EctoPlusOneTest do
 
   test "generates N+1 query" do
     from(p in Post)
-    |> @repo.all()
+    |> Repo.all()
     |> Enum.map(fn %{user_id: user_id} ->
       from(u in User, where: u.id == ^user_id)
-      |> @repo.one()
+      |> Repo.one()
     end)
 
     assert capture_log(fn ->
              # dummy query to trigger N+1
-             from(u in User) |> @repo.all()
+             from(u in User) |> Repo.all()
            end) =~ "[warning] N+1 Query Detected!"
   end
 
   defp create_user(params) do
     %User{}
     |> User.changeset(params)
-    |> @repo.insert()
+    |> Repo.insert()
   end
 
   defp create_post(params) do
     %Post{}
     |> Post.changeset(params)
-    |> @repo.insert()
+    |> Repo.insert()
   end
 end
