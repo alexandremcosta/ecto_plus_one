@@ -1,18 +1,12 @@
 defmodule EctoPlusOneTest do
-  use ExUnit.Case
   use EctoPlusOne.DataCase
 
-  import Ecto.Query
   import ExUnit.CaptureLog
 
-  alias EctoPlusOne.Repo
   alias EctoPlusOne.User
   alias EctoPlusOne.Post
 
-
   setup do
-    Ecto.Adapters.SQL.Sandbox.checkout(Repo)
-
     {:ok, user1} = create_user(%{name: "test1"})
     {:ok, user2} = create_user(%{name: "test2"})
     {:ok, user3} = create_user(%{name: "test3"})

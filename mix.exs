@@ -8,13 +8,19 @@ defmodule EctoPlusOne.MixProject do
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test", "test/support"]
-
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+     test: ["ecto.create --quiet", "ecto.migrate", "test"]
+    ]
+  end
 
   # Run "mix help compile.app" to learn about applications.
   def application do

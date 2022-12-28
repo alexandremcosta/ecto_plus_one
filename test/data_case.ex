@@ -3,13 +3,16 @@ defmodule EctoPlusOne.DataCase do
 
   using do
     quote do
-      alias Ecto.Changeset
-      import EctoPlusOne.DataCase
       alias EctoPlusOne.Repo
+
+      import Ecto
+      import Ecto.Query
+      import EctoPlusOne.DataCase
     end
   end
 
   setup _ do
-    Ecto.Adapters.SQL.Sandbox.mode(EctoPlusOne.Repo, :manual)
+    :ok =  Ecto.Adapters.SQL.Sandbox.checkout(EctoPlusOne.Repo)
+    :ok
   end
 end
