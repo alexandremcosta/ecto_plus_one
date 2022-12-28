@@ -52,13 +52,6 @@ config :ecto_plus_one, EctoPlusOne.Repo,
   pool: Ecto.Adapters.SQL.Sandbox
 ```
 
-Only first time create database and run migration with commands - 
-
-```
-$ MIX_ENV=test mix ecto.create
-$ MIX_ENV=test mix ecto.migrate
-```
-
 After that run tests using - 
 
 ```
